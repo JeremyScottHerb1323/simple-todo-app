@@ -2,8 +2,14 @@ import React from 'react'
 import TodosList from './TodosList'
 import Header from './Header'
 import InputTodo from './InputTodo'
-import uuid from "react-uuid";
+import uuid from "react-uuid" // For ID Generation
+import axios from "axios" // For pulling todos from third party api
 
+/**
+ * TodoContainer
+ * Class Component
+ * Main parent component that stores state as well
+ */
 class TodoContainer extends React.Component {
     /**
      * Store state on main parent component
@@ -12,23 +18,8 @@ class TodoContainer extends React.Component {
      * completed = boolean
      */
     state = {
-        todos: [
-            {
-                id: 1,
-                title: "Setup development environment",
-                completed: true
-            },
-            {
-                id: 2,
-                title: "Develop website and add content",
-                completed: false
-            },
-            {
-                id: 3,
-                title: "Deploy to live server",
-                completed: false
-            }
-        ]
+        todos: [],
+        show: false,
     }
 
     /**
@@ -44,7 +35,8 @@ class TodoContainer extends React.Component {
                     todo.completed = !todo.completed
                 }
                 return todo;
-            })
+            }),
+            show: !this.state.show,
         });
     }
 
@@ -54,6 +46,18 @@ class TodoContainer extends React.Component {
      * whos id is not equal to the current id
      */
     delTodo = id => {
+        axios
+            .delete(`https://jsonplaceholder.typicode.com/todos/${id}`)
+            .then(response =>
+                this.setState({
+                todos: [
+                    ...this.state.todos.filter(todo => {
+                        return todo.id !== id
+                    })
+                ]
+            })
+        )
+
         this.setState({
             todos: [
                 ...this.state.todos.filter(todo => {
@@ -69,20 +73,27 @@ class TodoContainer extends React.Component {
      * get title from input and save/add item
      */
     addTodoItem = title => {
-        const newTodo = {
-            id: uuid(),
-            title: title,
-            completed: false
-        };
-        this.setState({
-            todos: [...this.state.todos, newTodo]
-        });
+        axios
+            .post("https://jsonplaceholder.typicode.com/todos", {
+                title: title,
+                completed: false
+            })
+            .then(response =>
+                this.setState({
+                    todos: [...this.state.todos, response.data]
+                })
+            )
+    }
+
+    componentDidMount(){
+        axios.get("https://jsonplaceholder.typicode.com/todos?_limit=10")
+            .then(response => this.setState({ todos: response.data }));
     }
 
     render(){
         return (
             <div className="container">
-                <Header />
+                <Header headerSpan={this.state.show}/>
                 <InputTodo addTodoProps={this.addTodoItem} />
                 <TodosList 
                     todos={this.state.todos} 

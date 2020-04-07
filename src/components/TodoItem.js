@@ -6,10 +6,14 @@ function TodoItem(props) {
         color: "#d35e0f",
         opacity: .4,
         textDecoration: "line-through"
+    };
+
+    const { completed, id, title } = props.todo;
+    
+    componentWillUnmount() {
+        alert("Item about to be deleted!");
     }
 
-    const { completed, id, title } = props.todo
-    
     return(
     <li className="todo-item">
         <input 
